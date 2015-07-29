@@ -3,10 +3,10 @@ import string
 import random
 import __future__
 
-TARGET_NUMBER = 88
+TARGET_NUMBER = 60
 CROSS_OVER_RATE = 0.7
 MUTATION_RATE = 0.1
-POPULATION = 20
+POPULATION = 50
 
 gene_table = {'0000': '0',
               '0001': '1',
@@ -24,13 +24,14 @@ gene_table = {'0000': '0',
               '1101': '/',
               '1110': 'X',
               '1111': 'X'}
-def parse_chrom(chrom):
+def parse_chrom(chrom, with_log=False):
     input_str = chrom_to_string(chrom)
     operators = ['+', '-', '*', '/']
     #State of characters sequence needs to alternate
     is_state_number = True
     filtered_string = ""
-    print "Input: " + input_str
+    if with_log:
+        print "Input: " + input_str
     for i in input_str:
         if is_state_number and i in string.digits:
             filtered_string += i
@@ -41,7 +42,8 @@ def parse_chrom(chrom):
     #Remove the last character if not digit
     if filtered_string[-1:] not in string.digits:
         filtered_string = filtered_string[:-1]
-    print "Filtered: " + filtered_string
+    if with_log:
+        print "Filtered: " + filtered_string
     #All the compile stuffs is to make sure it eval the digits as if they were float, otherwise, just a normal eval function
     try:
         ret = eval(compile(filtered_string, '<string>', 'eval', __future__.division.compiler_flag))
@@ -82,18 +84,18 @@ def mutate(chrom, rate):
     return ret
 
 def reproduce(chrom_1, chrom_2):
-    print "1: {}. 2: {}".format(chrom_1, chrom_2)
+    #print "1: {}. 2: {}".format(chrom_1, chrom_2)
     offspring_1, offspring_2 = cross_over(chrom_1, chrom_2, CROSS_OVER_RATE)
     offspring_1 = mutate(offspring_1, MUTATION_RATE)
     offspring_2 = mutate(offspring_2, MUTATION_RATE)
-    print "1: {}. 2: {}".format(offspring_1, offspring_2)
+    #print "1: {}. 2: {}".format(offspring_1, offspring_2)
 
     return (offspring_1, offspring_2)
 
 def get_fitness_score(chrom):
     result = parse_chrom(chrom)
     if(result == TARGET_NUMBER):
-        return True
+        return 2
     else:
         return 1 / float((TARGET_NUMBER - result))
 
@@ -111,19 +113,52 @@ def choose_randomly(probability_dict):
             return k
 
 
-if __name__ == "__main__":
-    #{chromosome: fitness_score}
-    population = {}
-    for i in range(POPULATION):
-        chrom = generate_chrom()
-        population[chrom] = get_fitness_score(chrom)
+def population_fitness_avg(population):
+    #population should be a dict that follows {chrom: score}
+    sum = 0
+    for v in population.values():
+        sum += v
+    sum /= float(len(population.values()))
+    return sum
+
+
+def generate_generation(population):
     new_population = {}
-    print population
     while(len(new_population) < POPULATION):
         parent_1 = choose_randomly(population)
         parent_2 = choose_randomly(population)
         offspring_1, offspring_2 = reproduce(parent_1, parent_2)
         new_population[offspring_1] = get_fitness_score(offspring_1)
         new_population[offspring_2] = get_fitness_score(offspring_2)
+        if new_population[offspring_1] == 2:
+            return (offspring_1, 2)
+        if new_population[offspring_2] == 2:
+            return (offspring_2, 2)
     population = new_population
-    print population
+    #print population
+    population_avg = population_fitness_avg(population)
+    return (population, population_avg)
+
+
+if __name__ == "__main__":
+    #{chromosome: fitness_score}
+    winning_chrom = ""
+    population_avg = []
+    population = {}
+    for i in range(POPULATION):
+        chrom = generate_chrom()
+        population[chrom] = get_fitness_score(chrom)
+    #print population
+    population_avg.append(population_fitness_avg(population))
+
+    for i in range(150):
+        population, t_population_avg = generate_generation(population)
+        population_avg.append(t_population_avg)
+        if type(population) is str:
+            winning_chrom = population
+            break
+
+    for i, j in zip(population_avg, range(len(population_avg))):
+        print "{}: {}".format(j, i)
+    print parse_chrom(winning_chrom, True)
+
