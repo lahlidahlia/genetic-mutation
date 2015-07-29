@@ -43,7 +43,11 @@ def parse_chrom(chrom):
         filtered_string = filtered_string[:-1]
     print "Filtered: " + filtered_string
     #All the compile stuffs is to make sure it eval the digits as if they were float, otherwise, just a normal eval function
-    return eval(compile(filtered_string, '<string>', 'eval', __future__.division.compiler_flag))
+    try:
+        ret = eval(compile(filtered_string, '<string>', 'eval', __future__.division.compiler_flag))
+    except:
+        ret = 0
+    return ret
 
 def chrom_to_string(chrom):
     ret = ""
@@ -65,7 +69,7 @@ def cross_over(chrom_1, chrom_2, rate):
         t2 = chrom_2[pos:]
         chrom_1 = chrom_1[:pos] + t2
         chrom_2 = chrom_2[:pos] + t1
-        return (chrom_1, chrom_2)
+    return (chrom_1, chrom_2)
 
 def mutate(chrom, rate):
     #Each bit in the chrom has a chance to flip its bit
@@ -77,7 +81,7 @@ def mutate(chrom, rate):
             ret += bit
     return ret
 
-def produce_offspring(chrom_1, chrom_2):
+def reproduce(chrom_1, chrom_2):
     print "1: {}. 2: {}".format(chrom_1, chrom_2)
     offspring_1, offspring_2 = cross_over(chrom_1, chrom_2, CROSS_OVER_RATE)
     offspring_1 = mutate(offspring_1, MUTATION_RATE)
@@ -91,14 +95,15 @@ def get_fitness_score(chrom):
     if(result == TARGET_NUMBER):
         return True
     else:
-        return 1 / (TARGET_NUMBER - result)
+        return 1 / float((TARGET_NUMBER - result))
 
 def choose_randomly(probability_dict):
     #dict should follow the format: {item1: prob, item2: prob}
+    #Choose randomly using the roulette wheel algo
     prob_sum = 0
     for v in probability_dict.values():
         prob_sum += v
-    r = random.randrange(prob_sum)
+    r = random.random() * prob_sum
     sum_so_far = 0
     for k, v in probability_dict.iteritems():
         sum_so_far += v
@@ -106,12 +111,19 @@ def choose_randomly(probability_dict):
             return k
 
 
-#if __name__ == "__main__":
-#    #{chromosome: fitness_score}
-#    population = {}
-#    for i in range(POPULATION):
-#        chrom = generate_chrom()
-#        population[chrom] = fi
-#
-#    for chrom in population:
-#        
+if __name__ == "__main__":
+    #{chromosome: fitness_score}
+    population = {}
+    for i in range(POPULATION):
+        chrom = generate_chrom()
+        population[chrom] = get_fitness_score(chrom)
+    new_population = {}
+    print population
+    while(len(new_population) < POPULATION):
+        parent_1 = choose_randomly(population)
+        parent_2 = choose_randomly(population)
+        offspring_1, offspring_2 = reproduce(parent_1, parent_2)
+        new_population[offspring_1] = get_fitness_score(offspring_1)
+        new_population[offspring_2] = get_fitness_score(offspring_2)
+    population = new_population
+    print population
