@@ -25,14 +25,23 @@ class Genetics:
         """ Return the winner if there is one, otherwise false """
         pass
 
+    # CONVERSION
     def convert_chromo_table(self, chromo, step, table):
-        """ Convert a step amount of bits into values in table """
+        """ Convert a step amount of bits at a time into values in table """
         # Table should follow format {"0000": foo, ...}
         ret = []
         for i in range(0, len(chromo), step):
             ret.append(table[chromo[i:i+step]])
         return ret
 
+    def convert_chromo_int(self, chromo, step):
+        """ Convert a step amount of bits at a time into int """
+        ret = []
+        for i in range(0, len(chromo), step):
+            ret.append(int(i, 2))
+        return ret
+
+    # GENERATION
     def generate_chromo(self, n):
         """ Generate a string of n bit """
         ret = ""
@@ -40,6 +49,7 @@ class Genetics:
             ret += str(random.randrange(2))
         return ret
 
+    # REPRODUCTION
     def cross_over(self, chromo_1, chromo_2, rate):
         """ Cross 2 chromosomes over, dependant on rate """
         if(random.random() < rate):
@@ -87,15 +97,6 @@ class Genetics:
                 # The chromo that "won"
                 return k
 
-    def population_fitness_avg(self, population):
-        """ Calculates the population's average fitness score """
-        # population should be a dict that follows {chromo: score}
-        sum = 0
-        for v in population.values():
-            sum += v
-        sum /= float(len(population.values()))
-        return sum
-
     def generate_generation(self, population, max_population, crossover_rate,
                             mutation_rate):
         """ Generate a new generation using multiple factors """
@@ -110,3 +111,13 @@ class Genetics:
             new_population[offspring_2] = self.get_fitness_score(offspring_2)
         population = new_population
         return population
+
+    # FITNESS
+    def population_fitness_avg(self, population):
+        """ Calculates the population's average fitness score """
+        # population should be a dict that follows {chromo: score}
+        sum = 0
+        for v in population.values():
+            sum += v
+        sum /= float(len(population.values()))
+        return sum
