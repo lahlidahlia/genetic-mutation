@@ -24,10 +24,15 @@ gene_table = {'0000': '0',
               '1101': '/',
               '1110': 'X',
               '1111': 'X'}
-def parse_chrom(chrom, with_log=False):
-    input_str = chrom_to_string(chrom)
+
+
+def parse_chromo(chromo, with_log=False):
+    input_ls = convert_chromo_table(chromo, 4, gene_table)
+    input_str = ""
+    for i in input_ls:
+        input_str += i
     operators = ['+', '-', '*', '/']
-    #State of characters sequence needs to alternate
+    # State of characters sequence needs to alternate
     is_state_number = True
     filtered_string = ""
     if with_log:
@@ -39,61 +44,63 @@ def parse_chrom(chrom, with_log=False):
         elif not is_state_number and i in operators:
             filtered_string += i
             is_state_number = not is_state_number
-    #Remove the last character if not digit
+    # Remove the last character if not digit
     if filtered_string[-1:] not in string.digits:
         filtered_string = filtered_string[:-1]
     if with_log:
         print "Filtered: " + filtered_string
-    #All the compile stuffs is to make sure it eval the digits as if they were float, otherwise, just a normal eval function
+    # All the compile stuffs is to make sure it eval the digits as if they were float, otherwise, just a normal eval function
     try:
         ret = eval(compile(filtered_string, '<string>', 'eval', __future__.division.compiler_flag))
     except:
         ret = 0
     return ret
 
-def chrom_to_string(chrom):
-    ret = ""
-    for i in range(0, len(chrom), 4):
-        ret += gene_table[chrom[i:i+4]]
+def convert_chromo_table(chromo, step, table):
+    """ Convert a <step> amount of bits into what is specified in the table """
+    # Table should follow format {"0000": foo, ...}
+    ret = []
+    for i in range(0, len(chromo), step):
+        ret.append(gene_table[chromo[i:i+step]])
     return ret
 
-def generate_chrom():
+def generate_chromo():
     ret = ""
     for _ in range(20):
         ret += str(random.randrange(2))
     return ret
 
-def cross_over(chrom_1, chrom_2, rate):
-    #cross 2 chromosomes over, dependant on rate
+def cross_over(chromo_1, chromo_2, rate):
+    #cross 2 chromoosomes over, dependant on rate
     if(random.random() < rate):
         pos = random.randrange(20)
-        t1 = chrom_1[pos:]
-        t2 = chrom_2[pos:]
-        chrom_1 = chrom_1[:pos] + t2
-        chrom_2 = chrom_2[:pos] + t1
-    return (chrom_1, chrom_2)
+        t1 = chromo_1[pos:]
+        t2 = chromo_2[pos:]
+        chromo_1 = chromo_1[:pos] + t2
+        chromo_2 = chromo_2[:pos] + t1
+    return (chromo_1, chromo_2)
 
-def mutate(chrom, rate):
-    #Each bit in the chrom has a chance to flip its bit
+def mutate(chromo, rate):
+    #Each bit in the chromo has a chance to flip its bit
     ret = ""
-    for bit in chrom:
+    for bit in chromo:
         if(random.random() < rate):
             ret += "1" if bit == "0" else "0"
         else:
             ret += bit
     return ret
 
-def reproduce(chrom_1, chrom_2):
-    #print "1: {}. 2: {}".format(chrom_1, chrom_2)
-    offspring_1, offspring_2 = cross_over(chrom_1, chrom_2, CROSS_OVER_RATE)
+def reproduce(chromo_1, chromo_2):
+    #print "1: {}. 2: {}".format(chromo_1, chromo_2)
+    offspring_1, offspring_2 = cross_over(chromo_1, chromo_2, CROSS_OVER_RATE)
     offspring_1 = mutate(offspring_1, MUTATION_RATE)
     offspring_2 = mutate(offspring_2, MUTATION_RATE)
     #print "1: {}. 2: {}".format(offspring_1, offspring_2)
 
     return (offspring_1, offspring_2)
 
-def get_fitness_score(chrom):
-    result = parse_chrom(chrom)
+def get_fitness_score(chromo):
+    result = parse_chromo(chromo)
     if(result == TARGET_NUMBER):
         return 2
     else:
@@ -114,7 +121,7 @@ def choose_randomly(probability_dict):
 
 
 def population_fitness_avg(population):
-    #population should be a dict that follows {chrom: score}
+    #population should be a dict that follows {chromo: score}
     sum = 0
     for v in population.values():
         sum += v
@@ -141,13 +148,13 @@ def generate_generation(population):
 
 
 if __name__ == "__main__":
-    #{chromosome: fitness_score}
-    winning_chrom = ""
+    #{chromoosome: fitness_score}
+    winning_chromo = ""
     population_avg = []
     population = {}
     for i in range(POPULATION):
-        chrom = generate_chrom()
-        population[chrom] = get_fitness_score(chrom)
+        chromo = generate_chromo()
+        population[chromo] = get_fitness_score(chromo)
     #print population
     population_avg.append(population_fitness_avg(population))
 
@@ -155,10 +162,10 @@ if __name__ == "__main__":
         population, t_population_avg = generate_generation(population)
         population_avg.append(t_population_avg)
         if type(population) is str:
-            winning_chrom = population
+            winning_chromo = population
             break
 
     for i, j in zip(population_avg, range(len(population_avg))):
         print "{}: {}".format(j, i)
-    print parse_chrom(winning_chrom, True)
+    print parse_chromo(winning_chromo, True)
 
