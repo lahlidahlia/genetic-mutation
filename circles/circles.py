@@ -1,36 +1,74 @@
-#!/usr/bin/env python
+import random
+import math
+import genetics
+from collections import namedtuple
 
-import pygame
-import sys
-import function
-from pygame.locals import *
+Vector = namedtuple('Vector', 'x y r')
 
-pygame.init()
-fpsClock = pygame.time.Clock()
-fps = 60
-SCREEN_WIDTH = 500
-SCREEN_HEIGHT = 500
 
-window = pygame.display.set_mode((SCREEN_HEIGHT, SCREEN_HEIGHT))
-pygame.display.set_caption("pygame test")
+class Circle(genetics.Genetics):
+    """ Circle Class """
+    BIT_SIZE = 27
+    CROSSOVER_RATE = 0.7
+    MUTATION_RATE = 0.1
+    POPULATION = 50
+    # Score subtracted for overlapping
+    OVERLAP_PENALTY = 5
+    static_circle_list = []
 
-whiteColor = pygame.Color(255, 255, 255)
-redColor = pygame.Color(255, 0, 0)
+    def __init__(self, circle_list):
+        self.static_circle_list = circle_list
 
-circle_ls = function.generate_random_circle(25, 50, 20, SCREEN_WIDTH, SCREEN_HEIGHT)
+    def parse_chromo(self, chromo):
+        """ Parse chromo into string values stored in Vector"""
+        x, left_over = self.convert_chromo_int(chromo, 10)
+        y, left_over = self.convert_chromo_int(left_over, 10)
+        r, _ = self.convert_chromo_int(left_over, 7)
+        # Set minimum for r
+        r += 2
+        return Vector(x, y, r)
 
-while True:
-    window.fill(whiteColor)
-    for circle in circle_ls:
-        pygame.draw.circle(window, redColor, (circle.x, circle.y), circle.r, 2)
+    def get_fitness_score(self, chromo):
+        circle = self.parse_chromo(chromo)
+        score = circle.r
+        score -= self.check_for_overlap(circle, self.static_circle_list)*5
+        if score < 0:
+            score = 0
+        return score
 
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == KEYDOWN:
-            if event.key == K_ESCAPE:
-                pygame.event.post(pygame.event.Event(QUIT))
+    def find_winner(self, population):
+        return super(Circle, self).find_winner(population)
 
-    pygame.display.update()
-    fpsClock.tick(fps)
+    def generate_random_circle(self, min_radius, max_radius, amount, max_x,
+                               max_y):
+        """ Generate non-overlapping circles """
+        # [[Vector(x,y,r)], ...]
+        ret = []
+        for _ in range(amount):
+            while True:
+                circle = Vector(
+                    random.randrange(max_x),
+                    random.randrange(max_y),
+                    random.randrange(min_radius, max_radius))
+                if not self.check_for_overlap(circle, ret):
+                    break
+            ret.append(circle)
+        return ret
+
+    def check_for_overlap(self, given_circle, circle_ls):
+        """ Given a list of circle, check the given circle for overlap
+            given_circle should be a vector
+            Returns number of circle overlapped"""
+        amnt = 0
+        for circle in circle_ls:
+            if(self.distance(given_circle.x, given_circle.y, circle.x,
+                             circle.y) < circle.r + given_circle.r):
+                amnt += 1
+        if amnt:
+            return amnt
+        else:
+            return False
+
+    def distance(self, x1, y1, x2, y2):
+        """ Return the distance between 2 points """
+        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
