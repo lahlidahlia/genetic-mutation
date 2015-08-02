@@ -8,32 +8,39 @@ Vector = namedtuple('Vector', 'x y r')
 
 class Circle(genetics.Genetics):
     """ Circle Class """
-    BIT_SIZE = 27
+    BIT_SIZE = 30
     CROSSOVER_RATE = 0.7
-    MUTATION_RATE = 0.1
-    POPULATION = 50
-    # Score subtracted for overlapping
-    OVERLAP_PENALTY = 5
+    MUTATION_RATE = 0.2
+    POPULATION = 150
+    ELITES = 8
+    max_x = 500
+    max_y = 500
     static_circle_list = []
 
-    def __init__(self, circle_list):
+    def __init__(self, circle_list, max_x=500, max_y=500):
         self.static_circle_list = circle_list
+        self.max_x = max_x
+        self.max_y = max_y
 
     def parse_chromo(self, chromo):
         """ Parse chromo into string values stored in Vector"""
         x, left_over = self.convert_chromo_int(chromo, 10)
         y, left_over = self.convert_chromo_int(left_over, 10)
-        r, _ = self.convert_chromo_int(left_over, 7)
-        # Set minimum for r
+        r, _ = self.convert_chromo_int(left_over, 10)
+        # Set minimum for radius
         r += 2
+        if x > self.max_x:
+            x = self.max_x
+        if y > self.max_x:
+            y = self.max_y
         return Vector(x, y, r)
 
     def get_fitness_score(self, chromo):
         circle = self.parse_chromo(chromo)
         score = circle.r
-        score -= self.check_for_overlap(circle, self.static_circle_list)*5
-        if score < 0:
-            score = 0
+        if(self.check_for_overlap(circle, self.static_circle_list)
+                or self.check_for_outside(circle)):
+            score = 1
         return score
 
     def find_winner(self, population):
@@ -68,6 +75,26 @@ class Circle(genetics.Genetics):
             return amnt
         else:
             return False
+
+    def check_for_outside(self, circle):
+        """ Check if circle is going outside of screen """
+        if(circle.x + circle.r > self.max_x
+                or circle.x - circle.r < 0
+                or circle.y + circle.r > self.max_y
+                or circle.y - circle.r < 0):
+            return True
+        return False
+
+    def get_largest(self, n, d):
+        """ Get the largest n values from a dict """
+        ret = {}
+        ls = sorted(d.values(), reverse=True)[:n]
+        for i in ls:
+            k = d.keys()
+            v = d.values()
+            index = v.index(i)
+            ret[k[index]] = v[index]
+        return ret
 
     def distance(self, x1, y1, x2, y2):
         """ Return the distance between 2 points """
