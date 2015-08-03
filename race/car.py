@@ -20,7 +20,7 @@ class Car:
     color_direction = None  # Direction arrow
     arrow_length = 0  # Direction arrow
 
-    def __init__(self, x, y, window, color_chassis):
+    def __init__(self, window, x, y, color_chassis):
         self.position = Vector(x, y)
         self.window = window
         self.color_chassis = color_chassis
