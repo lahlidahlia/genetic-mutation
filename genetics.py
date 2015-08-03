@@ -26,8 +26,12 @@ class Genetics:
     @abc.abstractmethod
     def find_winner(self, population):
         """ Return the one with the best fitness score in the population """
-        k, v = population.iteritems()
-        return k[v.index(max(v))]
+        k_ls = []
+        v_ls = []
+        for k, v in population.iteritems():
+            k_ls.append(k)
+            v_ls.append(v)
+        return k_ls[v_ls.index(max(v_ls))]
 
     # CONVERSION
     def convert_chromo_table(self, chromo, step, table):
@@ -102,17 +106,23 @@ class Genetics:
                 # The chromo that "won"
                 return k
 
-    def generate_generation(self, population):
-        """ Generate a new generation using multiple factors """
+    def generate_generation(self, population, elites=False):
+        """ Generate a new generation using multiple factors
+            If elites is given as an int, will also include elites
+            number of best scoring chromo in the next gen"""
         # population should follow format {chromo: score, ...}
         new_population = {}
+        if elites:
+            new_population.update(self.get_largest(elites, population))
         while(len(new_population) < self.POPULATION):
             parent_1 = self.choose_randomly_roulette(population)
             parent_2 = self.choose_randomly_roulette(population)
+            # print "{}, {}".format(parent_1, parent_2)
             offspring_1, offspring_2 = self.reproduce(parent_1,
                                                       parent_2)
             new_population[offspring_1] = self.get_fitness_score(offspring_1)
             new_population[offspring_2] = self.get_fitness_score(offspring_2)
+            # print "{}, {}".format(offspring_1, offspring_2)
         population = new_population
         return population
 
