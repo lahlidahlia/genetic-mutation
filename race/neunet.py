@@ -12,7 +12,7 @@ class Neuron:
 
     def __init__(self, layer):
         """ Layer defines which layer this neuron belongs to """
-        self.input_size = 0
+        self.inputs = []
         self.weights = []  # Bias is always last
 
     def feed_forward(self):
@@ -41,44 +41,48 @@ class NeuNetLayer:
         # Next layer is the layer to be fed forward to
         self.neurons = []
         self.next_layer = next_layer
+        # Initialize neurons
         for _ in range(amount):
             neuron = Neuron(self)
             self.neurons.append(neuron)
-            if weight_ls:
-                for _ in range(len(input_ls)):
-                    neuron.weights.append(weight_ls.pop())
-        if input_size:
-            self.add_n_input_recurs(input_size)
+        # Add weights to neurons
+        if input_size and weight_ls:
+            self.add_n_input_recurs(input_size, weight_ls)
 
-    def feed_forward(self, weight_ls):
+    def feed_forward(self, input_ls=[]):
         """ Feeds the layer's inputs to the next layer's neurons
             If layer is an output layer, return the output of each
             neurons as a list """
+        # Give the input layer the initial input_ls
+        if input_ls:
+            for neuron in self.neurons:
+                neuron.inputs = input_ls
+        # If is output layer
+        # Returns the activation value
         if not self.next_layer:
             ret_ls = []
             for neuron in self.neurons:
                 ret_ls.append(neuron.feed_forward())
                 print "{}: {}".format("input list", neuron.inputs)
-                print neuron.feed_forward()
             return ret_ls
 
         # If not output
+        # Feed forward to each neurons in next layer
         for next_neuron in self.next_layer.neurons:
             next_neuron.inputs = []
             for neuron in self.neurons:
                 next_neuron.inputs.append(neuron.feed_forward())
-                next_neuron.weights.append(weight_ls.pop())
             next_neuron.inputs.append(1)  # Bias
-            next_neuron.weights.append(weight_ls.pop())
             #print next_neuron.inputs
-        return self.next_layer.feed_forward(weight_ls)
+        return self.next_layer.feed_forward()
 
-    def add_n_input_recurs(self, input_size):
+    def add_n_input_recurs(self, input_size, weight_ls):
         """ Add number of inputs to each neuron in this layer and then tell the next layer to do the same """
         for neuron in self.neurons:
-            neuron.input_size = input_size
+            for _ in range(input_size):
+                neuron.weights.append(weight_ls.pop())
         if self.next_layer:
-            self.next_layer.add_n_input_recurs(len(self.neurons) + 1)
+            self.next_layer.add_n_input_recurs(len(self.neurons) + 1, weight_ls)
 
 
 class NeuNet:
@@ -97,9 +101,7 @@ class NeuNet:
             Go make your own! """
         return
 
-    def start(self, input_ls, weight_ls):
+    def start(self, input_ls):
         """ Start the feed forward process with an input """
-        for neuron in self.input_layer:
-            neuron.inputs = input_ls
-        print self.input_layer.feed_forward(weight_ls)
+        return self.input_layer.feed_forward(input_ls)
 

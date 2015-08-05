@@ -16,6 +16,6 @@ if __name__ == "__main__":
     #ls = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     for _ in range(23):
         ls.append(1)
-    neunet = RaceNeuNet(ls)
-    neunet.start([0, 0, 0, 0, 1], ls)
+    neunet = RaceNeuNet(5, ls)
+    print neunet.start([0, 0, 0, 0, 1])
     #import pdb; pdb.set_trace()
