@@ -59,10 +59,10 @@ class Genetics:
         return ret
 
     # REPRODUCTION
-    def cross_over(self, chromo_1, chromo_2, rate):
+    def cross_over(self, chromo_1, chromo_2, rate, size):
         """ Cross 2 chromosomes over, dependant on rate """
         if(random.random() < rate):
-            pos = random.randrange(20)
+            pos = random.randrange(size)
             t1 = chromo_1[pos:]
             t2 = chromo_2[pos:]
             chromo_1 = chromo_1[:pos] + t2
@@ -79,15 +79,31 @@ class Genetics:
                 ret += bit
         return ret
 
-    def reproduce(self, chromo_1, chromo_2):
-        """ Create 2 new chromos from 2 chromos """
+    def mutate_value(self, chromo, rate, maximum):
+        """ Mutate with value chromo """
+        ret = []
+        for v in chromo:
+            if(random.random() < rate):
+                ret.append(v + (random.random() * maximum * 2 - maximum))
+            else:
+                ret.append(bit
+        return ret
+
+
+    def reproduce(self, chromo_1, chromo_2, enc_type="binary"):
+        """ Create 2 new chromos from 2 chromos
+            type can be "binary" or "values" """
         # print "1: {}. 2: {}".format(chromo_1, chromo_2)
         offspring_1, offspring_2 = self.cross_over(
                                                 chromo_1,
                                                 chromo_2,
                                                 self.CROSSOVER_RATE)
-        offspring_1 = self.mutate(offspring_1, self.MUTATION_RATE)
-        offspring_2 = self.mutate(offspring_2, self.MUTATION_RATE)
+        if enc_type == "binary":
+            offspring_1 = self.mutate(offspring_1, self.MUTATION_RATE)
+            offspring_2 = self.mutate(offspring_2, self.MUTATION_RATE)
+        elif enc_type == "values":
+            offspring_1 = self.mutate_value(offspring_1, self.MUTATION_RATE)
+            offspring_2 = self.mutate_value(offspring_2, self.MUTATION_RATE)
         # print "1: {}. 2: {}".format(offspring_1, offspring_2)
 
         return (offspring_1, offspring_2)
@@ -106,10 +122,11 @@ class Genetics:
                 # The chromo that "won"
                 return k
 
-    def generate_generation(self, population, elites=False):
+    def generate_generation(self, population, enc_type="binary", elites=False):
         """ Generate a new generation using multiple factors
             If elites is given as an int, will also include elites
-            number of best scoring chromo in the next gen"""
+            number of best scoring chromo in the next gen
+            type can be "binary" or "values" """
         # population should follow format {chromo: score, ...}
         new_population = {}
         if elites:
@@ -119,7 +136,8 @@ class Genetics:
             parent_2 = self.choose_randomly_roulette(population)
             # print "{}, {}".format(parent_1, parent_2)
             offspring_1, offspring_2 = self.reproduce(parent_1,
-                                                      parent_2)
+                                                      parent_2,
+                                                      enc_type)
             new_population[offspring_1] = self.get_fitness_score(offspring_1)
             new_population[offspring_2] = self.get_fitness_score(offspring_2)
             # print "{}, {}".format(offspring_1, offspring_2)
