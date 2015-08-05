@@ -103,5 +103,7 @@ class NeuNet:
 
     def start(self, input_ls):
         """ Start the feed forward process with an input """
+        # Append bias
+        input_ls.append(1)
         return self.input_layer.feed_forward(input_ls)
 

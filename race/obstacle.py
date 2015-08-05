@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from collections import namedtuple
 import math
-from car import Vector
+import car
 import pygame
 import random
 
@@ -35,7 +35,7 @@ class Obstacle:
     def __init__(self, window, x, y, color):
         self.window = window
         self.color = color
-        self.position = Vector(x, y)
+        self.position = car.Vector(x, y)
         Obstacle.obstacle_list.append(self)
 
     def draw(self):

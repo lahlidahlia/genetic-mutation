@@ -2,36 +2,59 @@
 from collections import namedtuple
 import math
 import pygame
+import obstacle
 
 Vector = namedtuple('Vector', 'x y')
 
 
 class Car:
     """ Car class """
-    position = Vector(0, 0)
-    direction = 90  # 0 = East
-    speed = 5
+    # Display window
+    window = None
 
-    radius = 20  # Radius of the car (because it's a circle)
-    d_direction = 0  # Change in direction, + is right, - is left from the bottom
-
-    window = None  # Display window
-    color_chassis = None
-    color_direction = None  # Direction arrow
-    arrow_length = 0  # Direction arrow
-
-    def __init__(self, window, x, y, color_chassis):
+    def __init__(self, x, y, color_chassis):
         self.position = Vector(x, y)
-        self.window = window
+        # 0 = East
+        self.direction = 90
+        self.speed = 5
+        # Radius of the car (because it's a circle)
+        self.radius = 20
+        # Change in direction, + is right, - is left from the bottom
+        self.d_direction = 0
         self.color_chassis = color_chassis
+        # Direction arrow
         self.color_direction = color_chassis
+        # Direction arrow
+        self.arrow_length = self.radius + 5
 
     def update(self):
         self.direction += self.d_direction
+        # Normalize direction to 0 - 360
+        if self.direction > 360:
+            self.direction - 360
+        if self.direction < 0:
+            self.direction + 360
+        # Calculate position
         new_x = self.position.x + math.cos(math.radians(self.direction)) * self.speed
         new_y = self.position.y - math.sin(math.radians(self.direction)) * self.speed
         self.position = Vector(new_x, new_y)
-        self.arrow_length = self.radius + 5
+
+    def vector_closest_obs(self, obs_list):
+        """ Returns the vector to the closest obstacle """
+        closest_ob = None
+        closest_dist = 99999
+        for ob in obs_list:
+            dist = obstacle.distance(self.position.x, self.position.y, ob.position.x, ob.position.y)
+            if dist < closest_dist:
+                closest_ob = ob
+                closest_dist = dist
+        return Vector(closest_ob.position.x - self.position.x, (closest_ob.position.x - self.position.x))
+
+    def vectorize_direction(self):
+        """ Turn direction into a vector """
+        # Convert direction to radians for easier computation
+        rad_dir = math.radians(self.direction)
+        return Vector(math.cos(rad_dir), math.sin(rad_dir))
 
     def draw(self):
         pygame.draw.circle(self.window,
