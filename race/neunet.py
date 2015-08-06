@@ -18,11 +18,11 @@ class Neuron:
     def feed_forward(self):
         """ Calculates the result and returns the activation """
         result = 0
-        print "weights: {}".format(self.weights)
-        print "inputs: {}".format(self.inputs)
+        # print "weights: {}".format(self.weights)
+        # print "inputs: {}".format(self.inputs)
         for i, w in zip(self.inputs, self.weights):
             result += i * w
-        print "result: {}".format(result)
+        # print "result: {}".format(result)
         return self.activate(result)
 
     def activate(self, x):
@@ -63,7 +63,7 @@ class NeuNetLayer:
             ret_ls = []
             for neuron in self.neurons:
                 ret_ls.append(neuron.feed_forward())
-                print "{}: {}".format("input list", neuron.inputs)
+                # print "{}: {}".format("input list", neuron.inputs)
             return ret_ls
 
         # If not output
@@ -96,9 +96,10 @@ class NeuNet:
     input_layer = None
 
     @abc.abstractmethod
-    def __init__(self, input_ls):
+    def __init__(self, input_ls, weight_ls):
         """ Create the whole neural network here
             Go make your own! """
+        self.weight_ls = weight_ls
         return
 
     def start(self, input_ls):
@@ -106,4 +107,3 @@ class NeuNet:
         # Append bias
         input_ls.append(1)
         return self.input_layer.feed_forward(input_ls)
-

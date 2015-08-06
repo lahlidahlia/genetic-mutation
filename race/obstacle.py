@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from collections import namedtuple
 import math
 import car
 import pygame
@@ -7,6 +6,7 @@ import random
 
 
 def generate_obstacle(window, amount, max_x, max_y, color):
+    Obstacle.obstacle_list = []
     for i in range(amount):
         while True:
             ob = Obstacle(window, random.randrange(max_x), random.randrange(max_y), color)

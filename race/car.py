@@ -3,29 +3,63 @@ from collections import namedtuple
 import math
 import pygame
 import obstacle
+from genetics import Genetics
+import local
+import race_neunet
 
 Vector = namedtuple('Vector', 'x y')
 
 
-class Car:
+class Car(Genetics):
     """ Car class """
     # Display window
     window = None
+    car_ls = []
 
-    def __init__(self, x, y, color_chassis):
+    CROSSOVER_RATE = 0.7
+    MUTATION_RATE = 0.1
+    MAX_MUTATE = 1
+    POPULATION = 10
+    CHROMO_SIZE = 23
+
+    # Contains weights
+    population_ls = []
+    population_fitness = []
+    population_avg = []
+    def __init__(self, x, y, color_chassis, input_size, weight_ls):
         self.position = Vector(x, y)
         # 0 = East
         self.direction = 90
-        self.speed = 5
+        self.speed = 0
         # Radius of the car (because it's a circle)
-        self.radius = 20
+        self.radius = 5
         # Change in direction, + is right, - is left from the bottom
         self.d_direction = 0
         self.color_chassis = color_chassis
         # Direction arrow
         self.color_direction = color_chassis
         # Direction arrow
-        self.arrow_length = self.radius + 5
+        self.arrow_length = self.radius + self.radius*0.5
+        self.neunet = race_neunet.RaceNeuNet(input_size, weight_ls)
+
+        self.max_score = 0
+        Car.car_ls.append(self)
+
+    def parse_chromo(self, chromo):
+        pass
+
+    def get_fitness_score(self, car):
+        return local.SCREEN_HEIGHT - car.position.y
+
+    def find_winner(self, population):
+        super(Car, self).find_winner(population)
+
+    @classmethod
+    def score_population(cls, car_ls):
+        cls.population_fitness = []
+        for car in car_ls:
+            cls.population_fitness.append(car.get_fitness_score(car))
+        return cls.population_fitness
 
     def update(self):
         self.direction += self.d_direction
@@ -38,6 +72,10 @@ class Car:
         new_x = self.position.x + math.cos(math.radians(self.direction)) * self.speed
         new_y = self.position.y - math.sin(math.radians(self.direction)) * self.speed
         self.position = Vector(new_x, new_y)
+        # Score updating
+        score = local.SCREEN_HEIGHT - self.position.y
+        if score > self.max_score:
+            self.max_score = score
 
     def vector_closest_obs(self, obs_list):
         """ Returns the vector to the closest obstacle """
