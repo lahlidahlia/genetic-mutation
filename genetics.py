@@ -1,5 +1,6 @@
 import random
 import abc
+import heapq
 
 
 class Genetics:
@@ -14,6 +15,7 @@ class Genetics:
     population_ls = []
     population_fitness = []
     population_avg = []
+
 
     @abc.abstractmethod
     def parse_chromo(self, chromo):
@@ -83,7 +85,8 @@ class Genetics:
                 ret += bit
         return ret
 
-    def mutate_value(self, chromo, rate, maximum):
+    @classmethod
+    def mutate_value(cls, chromo, rate, maximum):
         """ Mutate with value chromo """
         ret = []
         for v in chromo:
@@ -120,14 +123,14 @@ class Genetics:
         """ Choose randomly between items in probability dict """
         # dict should follow the format: {item1: prob, item2: prob}
         prob_sum = 0
-        print cls.population_fitness
-        print cls.population_ls
+        #print cls.population_fitness
+        #print cls.population_ls
         for v in cls.population_fitness:
             prob_sum += v
         r = random.random() * prob_sum
         sum_so_far = 0
         for k, v in zip(cls.population_ls, cls.population_fitness):
-            print k, v
+            #print k, v
             sum_so_far += v
             if(r < sum_so_far):
                 # The chromo that "won"
@@ -141,9 +144,10 @@ class Genetics:
             type can be "binary" or "values"
             Need to run score_population to assign fitness """
         # population should follow format {chromo: score, ...}
-        new_population = {}
-        if elites:
-            new_population.update(cls.get_largest(elites, cls.population_ls))
+        # Temp list
+        new_population = []
+        if type(elites) == int:
+            new_population.append(cls.get_largest(elites, cls.population_ls))
         while(len(new_population) < cls.POPULATION):
             parent_1 = cls.choose_randomly_roulette()
             parent_2 = cls.choose_randomly_roulette()
@@ -154,20 +158,15 @@ class Genetics:
                                                       enc_type,
                                                       max_mutate)
             # print "{}, {}".format(offspring_1, offspring_2)
+            new_population.append(offspring_1)
+            new_population.append(offspring_2)
         cls.population_ls = new_population
         return cls.population_ls
 
     @classmethod
-    def get_largest(cls, n, d):
-        """ Get the largest n values from a dict """
-        ret = {}
-        ls = sorted(d.values(), reverse=True)[:n]
-        for i in ls:
-            k = d.keys()
-            v = d.values()
-            index = v.index(i)
-            ret[k[index]] = v[index]
-        return ret
+    def get_largest(cls, amount):
+        """ Get the best performing chromosome """
+        return heapq.nlargest(amount, cls.population_fitness)
 
     @classmethod
     def score_population(cls):
