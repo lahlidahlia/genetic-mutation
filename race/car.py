@@ -18,7 +18,7 @@ class Car(Genetics):
 
     CROSSOVER_RATE = 0.7
     MUTATION_RATE = 0.1
-    MAX_MUTATE = 1
+    MAX_MUTATE = 2
     POPULATION = 10
     CHROMO_SIZE = 23
 

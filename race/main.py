@@ -8,12 +8,13 @@ import race_neunet as Neunet
 import obstacle
 import random
 import local
+import copy
 
 # Setup
 pygame.display.init()
 pygame.font.init()
 fps_clock = pygame.time.Clock()
-fps = 30
+fps = 1000
 SCREEN_WIDTH = local.SCREEN_WIDTH
 SCREEN_HEIGHT = local.SCREEN_HEIGHT
 
@@ -45,24 +46,25 @@ obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT, blackColor)
 # Reset car list
 Car.Car.car_list = []
 # Get all the weights
-weight_ls_ls = Car.Car.population_ls[::]
+weight_ls_ls = copy.deepcopy(Car.Car.population_ls)
 
 # Generate cars
-for _ in range(Car.Car.POPULATION):
-    car = Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
-    print "WEIGHT: {}".format(Car.Car.population_ls)
+for i in range(Car.Car.POPULATION):
+    Car.Car(SCREEN_WIDTH * i / Car.Car.POPULATION, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
 
 reset = False
 
 while True:
     # Reset the round after a certain amount of time
     counter += 1
-    if counter > fps*1:
-        reset = 1
+    if counter > 120:
+        reset = True
         counter = 0
     # Reset
     if reset:
-        Car.Car.score_population(Car.Car.car_ls)
+        #import pdb; pdb.set_trace()
+        ls = Car.Car.score_population(Car.Car.car_ls)
+
         Car.Car.generate_generation("values")
 
         # Generate obstacle
@@ -70,25 +72,28 @@ while True:
         # Reset car list
         Car.Car.car_list = []
         # Get all the weights
-        weight_ls_ls = Car.Car.population_dict.values()
+        weight_ls_ls = copy.deepcopy(Car.Car.population_ls)
 
-        for _ in range(Car.Car.POPULATION):
-            car = Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
+        # Delete cars
+        for car in Car.Car.car_ls:
+            del car
+        Car.Car.car_ls = []
+        # Create new cars
+        for i in range(Car.Car.POPULATION):
+            Car.Car(SCREEN_WIDTH * i / Car.Car.POPULATION, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
         reset = False
     window.fill(whiteColor)
 
     # Logic
-    v_closest = car.vector_closest_obs(obstacle.Obstacle.obstacle_list)
-    v_dir = car.vectorize_direction()
-    output = car.neunet.start([v_closest.x, v_closest.y, v_dir.x, v_dir.y])
-    car.speed = output[0]
-    car.d_direction = output[1]
-    print output
+    for car in Car.Car.car_ls:
+        v_closest = car.vector_closest_obs(obstacle.Obstacle.obstacle_list)
+        v_dir = car.vectorize_direction()
+        output = car.neunet.start([v_closest.x, v_closest.y, v_dir.x, v_dir.y])
+        car.speed = output[0]
+        car.d_direction = output[1]
+        car.update()
+        car.draw()
 
-    # Update
-    car.update()
-
-    # Draw
     for ob in obstacle.Obstacle.obstacle_list:
         ob.draw()
     for event in pygame.event.get():
@@ -103,6 +108,5 @@ while True:
 #                car.d_direction = -5
 #            elif event.key == K_RIGHT:
 #                car.d_direction = 5
-    car.draw()
     pygame.display.update()
     fps_clock.tick(fps)
