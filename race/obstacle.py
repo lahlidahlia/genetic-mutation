@@ -10,7 +10,7 @@ def generate_obstacle(window, amount, max_x, max_y, color):
     for i in range(amount):
         while True:
             ob = Obstacle(window, random.randrange(max_x), random.randrange(max_y), color)
-            if(not ob.check_overlap_obstacle()):
+            if not Obstacle.check_overlap_obstacle(ob):
                 break
             else:
                 Obstacle.obstacle_list.remove(ob)
@@ -24,7 +24,6 @@ def distance(x1, y1, x2, y2):
 class Obstacle:
     """ Obstacle class """
 
-    position = None
     radius = 20  # Circular obstacle
 
     window = None  # Display window
@@ -45,12 +44,15 @@ class Obstacle:
                                int(self.position.y)),
                            self.radius, 1)
 
-    def check_overlap_obstacle(self):
+    @staticmethod
+    def check_overlap_obstacle(obj):
         """ True if this object overlap with any other obstacle """
-        Obstacle.obstacle_list.remove(self)
+        if isinstance(obj, Obstacle):
+            Obstacle.obstacle_list.remove(obj)
         for obstacle in Obstacle.obstacle_list:
-            if distance(self.position.x, self.position.y, obstacle.position.x, obstacle.position.y) < (self.radius + obstacle.radius):
-                Obstacle.obstacle_list.append(self)
+            if distance(obj.position.x, obj.position.y, obstacle.position.x, obstacle.position.y) < (obj.radius + obstacle.radius):
+                Obstacle.obstacle_list.append(obj)
                 return True
-        Obstacle.obstacle_list.append(self)
+        if isinstance(obj, Obstacle):
+            Obstacle.obstacle_list.append(obj)
         return False

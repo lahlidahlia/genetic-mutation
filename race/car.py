@@ -18,9 +18,13 @@ class Car(Genetics):
 
     CROSSOVER_RATE = 0.7
     MUTATION_RATE = 0.1
-    MAX_MUTATE = 2
+    MAX_MUTATE = 0.5
     POPULATION = 10
     CHROMO_SIZE = 23
+
+    MAX_SPEED = 10
+    # Max turn speed
+    MAX_D_DIRECTION = 10
 
     # Contains weights
     population_ls = []
@@ -45,14 +49,14 @@ class Car(Genetics):
         self.max_score = 0
         Car.car_ls.append(self)
 
+        # Determines if car is stopped by something
+        self.stopped = False
+
     def parse_chromo(self, chromo):
         pass
 
     def get_fitness_score(self, car):
         return local.SCREEN_HEIGHT - car.position.y
-
-    def find_winner(self, population):
-        super(Car, self).find_winner(population)
 
     @classmethod
     def score_population(cls, car_ls):
@@ -62,21 +66,34 @@ class Car(Genetics):
         return cls.population_fitness
 
     def update(self):
-        self.direction += self.d_direction
-        # Normalize direction to 0 - 360
-        if self.direction > 360:
-            self.direction - 360
-        if self.direction < 0:
-            self.direction + 360
-        # Calculate position
-        new_x = self.position.x + math.cos(math.radians(self.direction)) * self.speed
-        new_y = self.position.y - math.sin(math.radians(self.direction)) * self.speed
-        self.position = Vector(new_x, new_y)
-        # Score updating
-        score = local.SCREEN_HEIGHT - self.position.y
-        if score > self.max_score:
-            self.max_score = score
+        # Only move if the car isn't stopped
+        if not self.stopped:
+            self.direction += self.d_direction
+            # Normalize direction to 0 - 360
+            if self.direction > 360:
+                self.direction - 360
+            if self.direction < 0:
+                self.direction + 360
+            # Calculate position
+            new_x = self.position.x + math.cos(math.radians(self.direction)) * self.speed
+            new_y = self.position.y - math.sin(math.radians(self.direction)) * self.speed
+            self.position = Vector(new_x, new_y)
+            # Score updating
+            score = local.SCREEN_HEIGHT - self.position.y
+            if score > self.max_score:
+                self.max_score = score
+            # Check if collided with obstacle or boundary
+            if obstacle.Obstacle.check_overlap_obstacle(self) or self.check_out_of_bound():
+                self.stopped = True
 
+    def check_out_of_bound(self):
+        """ Check if object is out of bound """
+        if(self.position.x + self.radius > local.SCREEN_WIDTH
+                or self.position.x - self.radius < 0
+                or self.position.y + self.radius > local.SCREEN_HEIGHT
+                or self.position.y - self.radius < 0):
+            return True
+        return False
     def vector_closest_obs(self, obs_list):
         """ Returns the vector to the closest obstacle """
         closest_ob = None

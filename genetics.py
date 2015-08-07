@@ -1,3 +1,4 @@
+import pprint
 import random
 import abc
 import heapq
@@ -27,15 +28,10 @@ class Genetics:
         """ Return the fitness score (int) of a chromosome """
         pass
 
-    @abc.abstractmethod
-    def find_winner(self, population):
+    @classmethod
+    def find_winner(cls):
         """ Return the one with the best fitness score in the population """
-        k_ls = []
-        v_ls = []
-        for k, v in population.iteritems():
-            k_ls.append(k)
-            v_ls.append(v)
-        return k_ls[v_ls.index(max(v_ls))]
+        return cls.population_ls[cls.population_fitness.index(max(cls.population_fitness))]
 
     # CONVERSION
     def convert_chromo_table(self, chromo, step, table):

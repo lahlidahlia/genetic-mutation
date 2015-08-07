@@ -4,6 +4,9 @@ import random
 import math
 
 def sigmoid(x):
+    # Clamped to prevent math range erro
+    if x < -500:
+        x = -500
     return 1/(1 + math.exp(-x))
 
 

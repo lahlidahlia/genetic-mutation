@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import pprint
 import pygame
 import sys
 from pygame.locals import *
@@ -14,12 +15,12 @@ import copy
 pygame.display.init()
 pygame.font.init()
 fps_clock = pygame.time.Clock()
-fps = 1000
+fps = 100
 SCREEN_WIDTH = local.SCREEN_WIDTH
 SCREEN_HEIGHT = local.SCREEN_HEIGHT
 
 window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Pong")
+pygame.display.set_caption("not Pong")
 
 # Color
 whiteColor = pygame.Color(255, 255, 255)
@@ -57,15 +58,18 @@ reset = False
 while True:
     # Reset the round after a certain amount of time
     counter += 1
-    if counter > 120:
+    if counter > 60:
         reset = True
         counter = 0
     # Reset
     if reset:
         #import pdb; pdb.set_trace()
         ls = Car.Car.score_population(Car.Car.car_ls)
+        #print ls
+        #print Car.Car.find_winner()
 
-        Car.Car.generate_generation("values")
+        ls = Car.Car.generate_generation("values", False, Car.Car.MAX_MUTATE)
+        #pprint.pprint(ls)
 
         # Generate obstacle
         obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT, blackColor)
@@ -89,8 +93,8 @@ while True:
         v_closest = car.vector_closest_obs(obstacle.Obstacle.obstacle_list)
         v_dir = car.vectorize_direction()
         output = car.neunet.start([v_closest.x, v_closest.y, v_dir.x, v_dir.y])
-        car.speed = output[0]
-        car.d_direction = output[1]
+        car.speed = output[0] * car.MAX_SPEED
+        car.d_direction = (output[1] - 0.5) * car.MAX_D_DIRECTION
         car.update()
         car.draw()
 
