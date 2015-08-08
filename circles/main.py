@@ -25,23 +25,25 @@ font = pygame.font.SysFont("monospace", 20)
 circle = Circle.Circle(None)
 circle_ls = circle.generate_random_circle(
     20, 40, 10, SCREEN_WIDTH, SCREEN_HEIGHT)
-circle = Circle.Circle(circle_ls, SCREEN_WIDTH, SCREEN_HEIGHT)
+Circle.Circle.static_circle_list = circle_ls
+circle = Circle.Circle(SCREEN_WIDTH, SCREEN_HEIGHT)
 for _ in range(circle.POPULATION):
-    chromo = (circle.generate_chromo(circle.BIT_SIZE))
-    circle.population_dict[chromo] = circle.get_fitness_score(chromo)
+    chromo = (circle.generate_chromo(circle.CHROMO_SIZE))
+    circle.population_ls.append(chromo)
+    circle.population_fitness.append(circle.get_fitness_score(chromo))
     # print circle.population_dict
-    circle.population_avg.append(
-        circle.population_fitness_avg(circle.population_dict))
+    # circle.population_avg.append(
+    #     circle.population_fitness_avg(circle.population_dict))
 gen_count = 0
 
 while True:
     gen_count += 1
     # Generate population
-    circle.population_dict = circle.generate_generation(
-        circle.population_dict, 4)
+    Circle.Circle.generate_generation("binary", Circle.Circle.ELITES)
+    Circle.Circle.score_population()
     # Find fitness average
-    circle.population_avg.append(
-        circle.population_fitness_avg(circle.population_dict))
+    # circle.population_avg.append(
+    #     circle.population_fitness_avg(circle.population_dict))
     # Display
     window.fill(whiteColor)
     for c in circle_ls:
@@ -51,7 +53,7 @@ while True:
 #        pygame.draw.circle(window, blackColor, (c.x, c.y), c.r, 2)
 #    winner = circle.parse_chromo(circle.find_winner(circle.population_dict))
 #    pygame.draw.circle(window, blackColor, (winner.x, winner.y), winner.r)
-    winners = circle.get_largest(4, circle.population_dict)
+    winners = circle.get_largest(4)
     for winner in winners:
         winner = circle.parse_chromo(winner)
         pygame.draw.circle(

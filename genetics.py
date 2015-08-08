@@ -43,7 +43,8 @@ class Genetics:
             ret.append(table[chromo[i:i+step]])
         return ret
 
-    def convert_chromo_int(self, chromo, step):
+    @classmethod
+    def convert_chromo_int(cls, chromo, step):
         """ Convert a step amount of bits at a time into int
             Returns the bits and left over bits"""
         ret = int(chromo[:step], 2)
@@ -143,16 +144,17 @@ class Genetics:
         # Temp list
         new_population = []
         if type(elites) == int:
-            new_population.append(cls.get_largest(elites, cls.population_ls))
+            for chromo in cls.get_largest(elites):
+                new_population.append(chromo)
         while(len(new_population) < cls.POPULATION):
             parent_1 = cls.choose_randomly_roulette()
             parent_2 = cls.choose_randomly_roulette()
             #print parent_1, parent_2
             # print "{}, {}".format(parent_1, parent_2)
             offspring_1, offspring_2 = cls.reproduce(parent_1,
-                                                      parent_2,
-                                                      enc_type,
-                                                      max_mutate)
+                                                  parent_2,
+                                                  enc_type,
+                                                  max_mutate)
             # print "{}, {}".format(offspring_1, offspring_2)
             new_population.append(offspring_1)
             new_population.append(offspring_2)
@@ -162,11 +164,17 @@ class Genetics:
     @classmethod
     def get_largest(cls, amount):
         """ Get the best performing chromosome """
-        return heapq.nlargest(amount, cls.population_fitness)
+        fitness_ls = heapq.nlargest(amount, cls.population_fitness)
+        ret = []
+        for fitness in fitness_ls:
+            ret.append(cls.population_ls[cls.population_fitness.index(fitness)])
+        return ret
 
     @classmethod
     def score_population(cls):
         """ Give each chromo in the population a score """
+        #import pdb; pdb.set_trace()
+        cls.population_fitness = []
         for chromo in cls.population_ls:
             cls.population_fitness.append(cls.get_fitness_score(chromo))
         return cls.population_ls
