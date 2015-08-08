@@ -53,7 +53,7 @@ while True:
 #        pygame.draw.circle(window, blackColor, (c.x, c.y), c.r, 2)
 #    winner = circle.parse_chromo(circle.find_winner(circle.population_dict))
 #    pygame.draw.circle(window, blackColor, (winner.x, winner.y), winner.r)
-    winners = circle.get_largest(4)
+    winners = circle.get_largest(10)
     for winner in winners:
         winner = circle.parse_chromo(winner)
         pygame.draw.circle(

@@ -24,7 +24,8 @@ class Car(Genetics):
 
     MAX_SPEED = 10
     # Max turn speed
-    MAX_D_DIRECTION = 10
+    MAX_D_DIRECTION = 50
+    ELITES = 2
 
     # Contains weights
     population_ls = []

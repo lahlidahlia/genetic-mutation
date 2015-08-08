@@ -26,6 +26,7 @@ pygame.display.set_caption("not Pong")
 whiteColor = pygame.Color(255, 255, 255)
 blackColor = pygame.Color(0, 0, 0)
 redColor = pygame.Color(255, 0, 0)
+blueColor = pygame.Color(0, 0, 255)
 
 font = pygame.font.SysFont("monospace", 20)
 
@@ -43,7 +44,7 @@ for _ in range(Car.Car.POPULATION):
     # Add to the chromosome list (because the weights are chromosomes)
     Car.Car.population_ls.append(weight_ls)
 
-obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT, blackColor)
+obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT - 200, blackColor)
 # Reset car list
 Car.Car.car_list = []
 # Get all the weights
@@ -51,7 +52,7 @@ weight_ls_ls = copy.deepcopy(Car.Car.population_ls)
 
 # Generate cars
 for i in range(Car.Car.POPULATION):
-    Car.Car(SCREEN_WIDTH * i / Car.Car.POPULATION, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
+    Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
 
 reset = False
 
@@ -68,11 +69,11 @@ while True:
         #print ls
         #print Car.Car.find_winner()
 
-        ls = Car.Car.generate_generation("values", False, Car.Car.MAX_MUTATE)
+        ls = Car.Car.generate_generation("values", Car.Car.ELITES, Car.Car.MAX_MUTATE)
         #pprint.pprint(ls)
 
         # Generate obstacle
-        obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT, blackColor)
+        obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT - 200, blackColor)
         # Reset car list
         Car.Car.car_list = []
         # Get all the weights
@@ -84,7 +85,10 @@ while True:
         Car.Car.car_ls = []
         # Create new cars
         for i in range(Car.Car.POPULATION):
-            Car.Car(SCREEN_WIDTH * i / Car.Car.POPULATION, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
+            if i < Car.Car.ELITES:
+                Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
+            else:
+                Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, blueColor, 4, weight_ls_ls.pop())
         reset = False
     window.fill(whiteColor)
 
