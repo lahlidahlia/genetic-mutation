@@ -30,8 +30,15 @@ blueColor = pygame.Color(0, 0, 255)
 
 font = pygame.font.SysFont("monospace", 20)
 
-reset = False
-counter = 0
+
+# Variables
+obstacle_amount = 20
+# Generate a new map after map_amount runs
+map_amount = 20
+# Start a new run after frame amount
+frame_amount = 60
+# How low can obstacles spawn
+obstacle_spawn_min = 100
 
 Car.Car.window = window
 
@@ -39,12 +46,12 @@ Car.Car.window = window
 for _ in range(Car.Car.POPULATION):
     # Temp weight list
     weight_ls = []
-    for _ in range(23):
+    for _ in range(Car.Car.CHROMO_SIZE):
         weight_ls.append(random.random() * 2 - 1)
     # Add to the chromosome list (because the weights are chromosomes)
     Car.Car.population_ls.append(weight_ls)
 
-obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT - 200, blackColor)
+obstacle.generate_obstacle(window, obstacle_amount, SCREEN_WIDTH, SCREEN_HEIGHT - obstacle_spawn_min, blackColor)
 # Reset car list
 Car.Car.car_list = []
 # Get all the weights
@@ -54,16 +61,20 @@ weight_ls_ls = copy.deepcopy(Car.Car.population_ls)
 for i in range(Car.Car.POPULATION):
     Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
 
+counter = 0
 reset = False
+generation = 0
+map_counter = 0
 
 while True:
-    # Reset the round after a certain amount of time
+    # Reset the round after a certain amount of frames
     counter += 1
-    if counter > 60:
+    if counter > frame_amount:
         reset = True
         counter = 0
     # Reset
     if reset:
+        generation += 1
         #import pdb; pdb.set_trace()
         ls = Car.Car.score_population(Car.Car.car_ls)
         #print ls
@@ -73,7 +84,10 @@ while True:
         #pprint.pprint(ls)
 
         # Generate obstacle
-        #obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT - 200, blackColor)
+        map_counter += 1
+        if map_counter >= map_amount:
+            map_counter = 0
+            obstacle.generate_obstacle(window, obstacle_amount, SCREEN_WIDTH, SCREEN_HEIGHT - obstacle_spawn_min, blackColor)
         # Reset car list
         Car.Car.car_list = []
         # Get all the weights
@@ -86,27 +100,35 @@ while True:
         # Create new cars
         for i in range(Car.Car.POPULATION):
             if i < Car.Car.ELITES:
-                weight_ls = weight_ls_ls.pop(0)[:]
-                print "Main: {}".format(weight_ls)
-                print ""
-                Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls)
+                t_car = Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop(0))
+                t_car.is_elite = True
             else:
                 Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, blueColor, 4, weight_ls_ls.pop(0))
         reset = False
     window.fill(whiteColor)
 
     # Logic
-    for car in Car.Car.car_ls:
+    # Update cars in backward order so elites gets drawn last (aka on top of other cars)
+    for car in Car.Car.car_ls[::-1]:
         v_closest = car.vector_closest_obs(obstacle.Obstacle.obstacle_list)
         v_dir = car.vectorize_direction()
         output = car.neunet.start([v_closest.x, v_closest.y, v_dir.x, v_dir.y])
         car.speed = output[0] * car.MAX_SPEED
         car.d_direction = (output[1] - 0.5) * car.MAX_D_DIRECTION
         car.update()
-        car.draw()
+        if car.is_elite:
+            car.draw()
+        #car.draw()
 
     for ob in obstacle.Obstacle.obstacle_list:
         ob.draw()
+
+    # Draw
+    fps_label = font.render("FPS: {}".format(fps), 1, blackColor)
+    generation_label = font.render("Generation: {}".format(generation), 1, blackColor)
+    window.blit(fps_label, (SCREEN_WIDTH - 150, 10))
+    window.blit(generation_label, (10, 10))
+
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.display.quit()
@@ -115,9 +137,9 @@ while True:
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 pygame.event.post(pygame.event.Event(QUIT))
-#            elif event.key == K_LEFT:
-#                car.d_direction = -5
-#            elif event.key == K_RIGHT:
-#                car.d_direction = 5
+            if event.key == K_LEFT:
+                fps /= 5
+            if event.key == K_RIGHT:
+                fps *= 5
     pygame.display.update()
     fps_clock.tick(fps)

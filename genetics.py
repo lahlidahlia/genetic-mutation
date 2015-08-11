@@ -148,8 +148,6 @@ class Genetics:
             elite_ls = cls.get_largest(elites)
             for chromo in elite_ls:
                 new_population.append(chromo)
-                print "Generate : {}".format(chromo)
-                print ""
         while(len(new_population) < cls.POPULATION):
             parent_1 = cls.choose_randomly_roulette()
             parent_2 = cls.choose_randomly_roulette()
@@ -169,11 +167,8 @@ class Genetics:
     def get_largest(cls, amount):
         """ Get the best performing chromosome """
         fitness_ls = heapq.nlargest(amount, cls.population_fitness)
-        print "Largest: {}".format(fitness_ls)
-        print ""
         ret = []
         for fitness in fitness_ls:
-            print "Fitness weight: {}".format(cls.population_ls[cls.population_fitness.index(fitness)])
             ret.append(cls.population_ls[cls.population_fitness.index(fitness)])
         return ret
 

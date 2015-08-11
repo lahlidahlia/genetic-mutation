@@ -18,14 +18,14 @@ class Car(Genetics):
 
     CROSSOVER_RATE = 0.7
     MUTATION_RATE = 0.1
-    MAX_MUTATE = 0.5
-    POPULATION = 10
+    MAX_MUTATE = 3
+    POPULATION = 100
     CHROMO_SIZE = 23
 
     MAX_SPEED = 10
     # Max turn speed
     MAX_D_DIRECTION = 50
-    ELITES = 2
+    ELITES = 8
 
     # Contains weights
     population_ls = []
@@ -52,6 +52,7 @@ class Car(Genetics):
 
         # Determines if car is stopped by something
         self.stopped = False
+        self.is_elite = False
 
     def parse_chromo(self, chromo):
         pass
