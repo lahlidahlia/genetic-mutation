@@ -51,7 +51,8 @@ class Obstacle:
             Obstacle.obstacle_list.remove(obj)
         for obstacle in Obstacle.obstacle_list:
             if distance(obj.position.x, obj.position.y, obstacle.position.x, obstacle.position.y) < (obj.radius + obstacle.radius):
-                Obstacle.obstacle_list.append(obj)
+                if isinstance(obj, Obstacle):
+                    Obstacle.obstacle_list.append(obj)
                 return True
         if isinstance(obj, Obstacle):
             Obstacle.obstacle_list.append(obj)

@@ -73,7 +73,7 @@ while True:
         #pprint.pprint(ls)
 
         # Generate obstacle
-        obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT - 200, blackColor)
+        #obstacle.generate_obstacle(window, 10, SCREEN_WIDTH, SCREEN_HEIGHT - 200, blackColor)
         # Reset car list
         Car.Car.car_list = []
         # Get all the weights
@@ -86,9 +86,12 @@ while True:
         # Create new cars
         for i in range(Car.Car.POPULATION):
             if i < Car.Car.ELITES:
-                Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls_ls.pop())
+                weight_ls = weight_ls_ls.pop(0)[:]
+                print "Main: {}".format(weight_ls)
+                print ""
+                Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, redColor, 4, weight_ls)
             else:
-                Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, blueColor, 4, weight_ls_ls.pop())
+                Car.Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 25, blueColor, 4, weight_ls_ls.pop(0))
         reset = False
     window.fill(whiteColor)
 

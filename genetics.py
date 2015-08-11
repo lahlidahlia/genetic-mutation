@@ -144,8 +144,12 @@ class Genetics:
         # Temp list
         new_population = []
         if type(elites) == int:
-            for chromo in cls.get_largest(elites):
+            #import pdb; pdb.set_trace()
+            elite_ls = cls.get_largest(elites)
+            for chromo in elite_ls:
                 new_population.append(chromo)
+                print "Generate : {}".format(chromo)
+                print ""
         while(len(new_population) < cls.POPULATION):
             parent_1 = cls.choose_randomly_roulette()
             parent_2 = cls.choose_randomly_roulette()
@@ -165,15 +169,17 @@ class Genetics:
     def get_largest(cls, amount):
         """ Get the best performing chromosome """
         fitness_ls = heapq.nlargest(amount, cls.population_fitness)
+        print "Largest: {}".format(fitness_ls)
+        print ""
         ret = []
         for fitness in fitness_ls:
+            print "Fitness weight: {}".format(cls.population_ls[cls.population_fitness.index(fitness)])
             ret.append(cls.population_ls[cls.population_fitness.index(fitness)])
         return ret
 
     @classmethod
     def score_population(cls):
         """ Give each chromo in the population a score """
-        #import pdb; pdb.set_trace()
         cls.population_fitness = []
         for chromo in cls.population_ls:
             cls.population_fitness.append(cls.get_fitness_score(chromo))

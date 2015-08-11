@@ -57,7 +57,7 @@ class Car(Genetics):
         pass
 
     def get_fitness_score(self, car):
-        return local.SCREEN_HEIGHT - car.position.y
+        return self.max_score
 
     @classmethod
     def score_population(cls, car_ls):
