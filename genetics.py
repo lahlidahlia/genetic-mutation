@@ -1,4 +1,3 @@
-import pprint
 import random
 import abc
 import heapq
@@ -7,20 +6,30 @@ import heapq
 class Genetics:
     __metaclass__ = abc.ABCMeta
 
-    # Default variables, reset as needed
+    # Default variables, reset through extending as needed
     CROSSOVER_RATE = 0.7
     MUTATION_RATE = 0.1
-    POPULATION = 50
-    CHROMO_SIZE = 0
+    # Values are: binary, value (case sensitive)
+    ENC_TYPE = "binary"
+    # If enc_type is value, max_value defines how much the value can mutate
+    MAX_MUTATE = 0
+    POPULATION = 150
+    CHROMO_SIZE = 23
+    # Elites are how many well performing chromosomes gets transferred to
+    # the next generation.
+    ELITES = False
 
+    # Class lists, try not to scramble these around,
+    # they rely on correct ordering
+    # Contains the chromosomes
     population_ls = []
+    # Contains fitness score of each chromosome
     population_fitness = []
     population_avg = []
 
-
-    @abc.abstractmethod
     def parse_chromo(self, chromo):
-        """ Parse the chromo into whatever format """
+        """ Needs to be redefined if chromo needs to be parsed
+            Parse the chromo into whatever format """
         pass
 
     @abc.abstractmethod
@@ -52,17 +61,18 @@ class Genetics:
         return ret, left_over
 
     # GENERATION
-    def generate_chromo(self, n):
-        """ Generate a string of n bit """
+    def generate_binary_chromo(self, length):
+        """ Generate a string of random binary string of a given length """
         ret = ""
-        for _ in range(n):
+        for _ in range(length):
             ret += str(random.randrange(2))
         return ret
 
     # REPRODUCTION
     @classmethod
     def cross_over(cls, chromo_1, chromo_2, rate, size):
-        """ Cross 2 chromosomes over, dependant on rate """
+        """ Chance to cross 2 chromosomes
+            Returns a tuple of 2 chromos """
         if(random.random() < rate):
             pos = random.randrange(size)
             t1 = chromo_1[pos:]
@@ -72,47 +82,39 @@ class Genetics:
         return (chromo_1, chromo_2)
 
     @classmethod
-    def mutate(cls, chromo, rate):
-        """ For each bit, have a <rate> chance to flip it """
-        ret = ""
-        for bit in chromo:
-            if(random.random() < rate):
-                ret += "1" if bit == "0" else "0"
-            else:
-                ret += bit
-        return ret
+    def mutate(cls, chromo):
+        """ For each bit, have a <rate> chance to mutate it """
+        if cls.ENC_TYPE == "binary":
+            ret = ""
+            for bit in chromo:
+                if(random.random() < cls.MUTATION_RATE):
+                    # Flip bit
+                    ret += "1" if bit == "0" else "0"
+                else:
+                    ret += bit
+            return ret
+
+        if cls.ENC_TYPE == "value":
+            ret = []
+            for v in chromo:
+                if(random.random() < cls.MUTATION_RATE):
+                    # Add or subtract random amount from the number
+                    ret.append(
+                        v + (random.random() *
+                             cls.MAX_MUTATE * 2 - cls.MAX_MUTATE))
+                else:
+                    ret.append(v)
+            return ret
 
     @classmethod
-    def mutate_value(cls, chromo, rate, maximum):
-        """ Mutate with value chromo """
-        ret = []
-        for v in chromo:
-            if(random.random() < rate):
-                ret.append(v + (random.random() * maximum * 2 - maximum))
-            else:
-                ret.append(v)
-        return ret
-
-
-    @classmethod
-    def reproduce(cls, chromo_1, chromo_2, enc_type="binary", max_mutate=0):
-        """ Create 2 new chromos from 2 chromos
-            type can be "binary" or "values" """
-        # print "1: {}. 2: {}".format(chromo_1, chromo_2)
-        # print chromo_1, chromo_2
-        offspring_1, offspring_2 = cls.cross_over(
-                                                chromo_1,
-                                                chromo_2,
-                                                cls.CROSSOVER_RATE,
-                                                cls.CHROMO_SIZE)
-        if enc_type == "binary":
-            offspring_1 = cls.mutate(offspring_1, cls.MUTATION_RATE)
-            offspring_2 = cls.mutate(offspring_2, cls.MUTATION_RATE)
-        elif enc_type == "values":
-            offspring_1 = cls.mutate_value(offspring_1, cls.MUTATION_RATE, max_mutate)
-            offspring_2 = cls.mutate_value(offspring_2, cls.MUTATION_RATE, max_mutate)
-        # print "1: {}. 2: {}".format(offspring_1, offspring_2)
-
+    def reproduce(cls, chromo_1, chromo_2):
+        """ Create 2 new chromos from 2 chromos """
+        offspring_1, offspring_2 = cls.cross_over(chromo_1,
+                                                  chromo_2,
+                                                  cls.CROSSOVER_RATE,
+                                                  cls.CHROMO_SIZE)
+        offspring_1 = cls.mutate(offspring_1)
+        offspring_2 = cls.mutate(offspring_2)
         return (offspring_1, offspring_2)
 
     @classmethod
@@ -134,51 +136,55 @@ class Genetics:
                 return k
 
     @classmethod
-    def generate_generation(cls, enc_type="binary", elites=False, max_mutate=0):
-        """ Generate a new generation using multiple factors
-            If elites is given as an int, will also include elites
-            number of best scoring chromo in the next gen
-            type can be "binary" or "values"
-            Need to run score_population to assign fitness """
-        # population should follow format {chromo: score, ...}
-        # Temp list
-        new_population = []
-        if type(elites) == int:
-            #import pdb; pdb.set_trace()
-            elite_ls = cls.get_largest(elites)
-            for chromo in elite_ls:
-                new_population.append(chromo)
-        while(len(new_population) < cls.POPULATION):
-            parent_1 = cls.choose_randomly_roulette()
-            parent_2 = cls.choose_randomly_roulette()
-            #print parent_1, parent_2
-            # print "{}, {}".format(parent_1, parent_2)
-            offspring_1, offspring_2 = cls.reproduce(parent_1,
-                                                  parent_2,
-                                                  enc_type,
-                                                  max_mutate)
-            # print "{}, {}".format(offspring_1, offspring_2)
-            new_population.append(offspring_1)
-            new_population.append(offspring_2)
-        cls.population_ls = new_population
-        return cls.population_ls
-
-    @classmethod
-    def get_largest(cls, amount):
-        """ Get the best performing chromosome """
-        fitness_ls = heapq.nlargest(amount, cls.population_fitness)
-        ret = []
-        for fitness in fitness_ls:
-            ret.append(cls.population_ls[cls.population_fitness.index(fitness)])
-        return ret
-
-    @classmethod
     def score_population(cls):
         """ Give each chromo in the population a score """
         cls.population_fitness = []
         for chromo in cls.population_ls:
             cls.population_fitness.append(cls.get_fitness_score(chromo))
         return cls.population_ls
+
+    @classmethod
+    def generate_generation(cls, elites=False):
+        """ Generate a new generation using multiple factors
+
+            Arguments:
+            elites -- If given as an int, will retain a specified amount
+                      of best performing chromosomes in the next generation
+
+            Make sure to call score_population before this method
+            """
+        # population should follow format {chromo: score, ...}
+        # Temp list
+        new_population = []
+        if elites:
+            # Best performing chromosomes will be kept in the next generation
+            elite_ls = cls.get_best(elites)
+            for chromo in elite_ls:
+                new_population.append(chromo)
+        while(len(new_population) < cls.POPULATION):
+            # Generates chromosomes until specified population is reached
+
+            # Choose the chromosomes to breed
+            parent_1 = cls.choose_randomly_roulette()
+            parent_2 = cls.choose_randomly_roulette()
+            # Reproduce (crossover and mutate)
+            offspring_1, offspring_2 = cls.reproduce(parent_1,
+                                                     parent_2)
+            new_population.append(offspring_1)
+            new_population.append(offspring_2)
+        cls.population_ls = new_population
+        return cls.population_ls
+
+    @classmethod
+    def get_best(cls, amount):
+        """ Return the best performing chromosomes """
+        ret = []
+        # Find best scores
+        fitness_ls = heapq.nlargest(amount, cls.population_fitness)
+        for fitness in fitness_ls:
+            ret.append(
+                cls.population_ls[cls.population_fitness.index(fitness)])
+        return ret
 
     # FITNESS
     def population_fitness_avg(self, population):

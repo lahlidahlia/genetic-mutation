@@ -34,7 +34,7 @@ font = pygame.font.SysFont("monospace", 20)
 # Variables
 obstacle_amount = 20
 # Generate a new map after map_amount runs
-map_amount = 20
+map_amount = 10
 # Start a new run after frame amount
 frame_amount = 60
 # How low can obstacles spawn
@@ -80,8 +80,7 @@ while True:
         #print ls
         #print Car.Car.find_winner()
 
-        ls = Car.Car.generate_generation("values", Car.Car.ELITES, Car.Car.MAX_MUTATE)
-        #pprint.pprint(ls)
+        Car.Car.generate_generation(Car.Car.ELITES)
 
         # Generate obstacle
         map_counter += 1
@@ -116,9 +115,9 @@ while True:
         car.speed = output[0] * car.MAX_SPEED
         car.d_direction = (output[1] - 0.5) * car.MAX_D_DIRECTION
         car.update()
-        if car.is_elite:
-            car.draw()
-        #car.draw()
+        #if car.is_elite:
+        #    car.draw()
+        car.draw()
 
     for ob in obstacle.Obstacle.obstacle_list:
         ob.draw()

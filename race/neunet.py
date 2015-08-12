@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import abc
-import random
 import math
 
 def sigmoid(x):
