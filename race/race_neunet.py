@@ -8,11 +8,9 @@ class RaceNeuNet(NeuNet):
 
     def __init__(self, input_size, weight_ls):
         """ Create the layers, inserting each to the front of the list """
-        # Account for bias
         super(RaceNeuNet, self).__init__(input_size, weight_ls)
-        input_size += 1
         self.output_layer = NeuNetLayer(2)
-        self.input_layer = NeuNetLayer(3, self.output_layer, weight_ls, input_size)
+        self.first_hidden_layer = NeuNetLayer(3, self.output_layer, weight_ls, input_size)
 
 if __name__ == "__main__":
     ls = []

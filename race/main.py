@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-import pprint
 import pygame
 import sys
 from pygame.locals import *
 import car as Car
-import race_neunet as Neunet
 import obstacle
 import random
 import local

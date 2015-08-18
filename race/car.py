@@ -12,7 +12,7 @@ Vector = namedtuple('Vector', 'x y')
 
 class Car(Genetics):
     """ Defines a car that can be instantiated and run.
-        Extends the genetics module, so it can 
+        Extends the genetics module, so it can
     """
     # Display window
     window = None

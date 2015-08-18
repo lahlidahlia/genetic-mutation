@@ -9,26 +9,40 @@ def sigmoid(x):
     return 1/(1 + math.exp(-x))
 
 
-class Neuron:
-    """ Defines a single neuron of a neural network """
+class NeuNet:
+    """ Defines a whole meural network
+        Usage:
+        Create a class that extends this class, then in __init__,
+        call superclass init, and then create layers with NeuNetLayer.
+        It is important to note that self.first_hidden_layer must
+        be set to the first hidden layer and also the order of layer
+        creation should be outer layer first.
+        To feed input and get an output, call start(<input list>).
+        Make sure you initialize the neunet with a correct amount of
+        weights.
+        """
 
-    def __init__(self, layer):
-        """ Layer defines which layer this neuron belongs to """
-        self.inputs = []
-        self.weights = []  # Bias is always last
+    __metaclass__ = abc.ABCMeta
 
-    def feed_forward(self):
-        """ Calculates the result and returns the activation """
-        result = 0
-        # print "weights: {}".format(self.weights)
-        # print "inputs: {}".format(self.inputs)
-        for i, w in zip(self.inputs, self.weights):
-            result += i * w
-        # print "result: {}".format(result)
-        return self.activate(result)
+    # Input layers aren't needed because they automatically feed into this.
+    first_hidden_layer = None
 
-    def activate(self, x):
-        return sigmoid(x)
+    @abc.abstractmethod
+    def __init__(self, input_size, weight_ls):
+        """ Create the whole neural network here
+
+            Go make your own!
+            """
+        # Increment input_size to account for bias
+        input_size += 1
+        self.weight_ls = weight_ls
+        return
+
+    def start(self, input_ls):
+        """ Start the feed forward process with an input """
+        # Append bias
+        input_ls.append(1)
+        return self.first_hidden_layer.feed_forward(input_ls)
 
 
 class NeuNetLayer:
@@ -87,25 +101,23 @@ class NeuNetLayer:
             self.next_layer.add_n_input_recurs(len(self.neurons) + 1, weight_ls)
 
 
-class NeuNet:
-    """ Defines a whole meural network
-        Probably should define your own NeuNet """
+class Neuron:
+    """ Defines a single neuron of a neural network """
 
-    __metaclass__ = abc.ABCMeta
+    def __init__(self, layer):
+        """ Layer defines which layer this neuron belongs to """
+        self.inputs = []
+        self.weights = []  # Bias is always last
 
-    # Actually the first hidden layer,
-    # as input layer immediately feed into that
-    input_layer = None
+    def feed_forward(self):
+        """ Calculates the result and returns the activation """
+        result = 0
+        # print "weights: {}".format(self.weights)
+        # print "inputs: {}".format(self.inputs)
+        for i, w in zip(self.inputs, self.weights):
+            result += i * w
+        # print "result: {}".format(result)
+        return self.activate(result)
 
-    @abc.abstractmethod
-    def __init__(self, input_ls, weight_ls):
-        """ Create the whole neural network here
-            Go make your own! """
-        self.weight_ls = weight_ls
-        return
-
-    def start(self, input_ls):
-        """ Start the feed forward process with an input """
-        # Append bias
-        input_ls.append(1)
-        return self.input_layer.feed_forward(input_ls)
+    def activate(self, x):
+        return sigmoid(x)
